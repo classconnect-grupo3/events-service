@@ -1,0 +1,6 @@
+pika
+email-validator
+httpx
+aiosmtplib
+aiohttp
+pydantic
