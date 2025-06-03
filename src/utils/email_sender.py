@@ -27,7 +27,7 @@ async def send_notification_email(
         message["To"] = to_email
 
         # Customize subject and content based on event type
-        if event_type == "assignment_created":
+        if event_type == "assignment.created":
             message["Subject"] = f"Nueva asignación: {event_data['assignment_title']}"
             content = f"""
             Se ha creado una nueva asignación en tu curso.
