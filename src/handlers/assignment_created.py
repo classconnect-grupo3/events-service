@@ -14,7 +14,24 @@ async def handle_assignment_created_event(db: Session, event: AssignmentCreatedE
                 f"https://courses-service-production.up.railway.app/courses/{event.course_id}/enrollments"
             )
             response.raise_for_status()
-            enrollments = response.json()["data"]
+            response_data = response.json()
+            logger.info(
+                f"Response data: {response_data}"
+            )  # Log the response to see its structure
+
+            # The response might be a list directly or have a different structure
+            enrollments = (
+                response_data
+                if isinstance(response_data, list)
+                else response_data.get("data", [])
+            )
+
+            if not enrollments:
+                logger.warning(
+                    f"No se encontraron inscripciones para el curso {event.course_id}"
+                )
+                return
+
     except Exception as e:
         logger.error(
             f"No se pudieron obtener inscripciones del curso {event.course_id}: {e}"
