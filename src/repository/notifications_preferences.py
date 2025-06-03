@@ -7,6 +7,6 @@ def get_preferences_by_user_id(
 ) -> list[NotificationPreferences]:
     return (
         db.query(NotificationPreferences)
-        .filter(NotificationPreferences.user_id == user_id)
+        .filter(NotificationPreferences.uid == user_id)
         .all()
     )
