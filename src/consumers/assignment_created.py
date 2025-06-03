@@ -24,14 +24,16 @@ def consume_assignment_created():
             logger.error(f"Evento mal formado: {e}")
             return
 
-        db: Session = get_db()
-        logger.info(f"Evento recibido: {event.event_type} para {event.course_id}")
-
-        asyncio.run(handle_assignment_created_event(db, event))
-        db.close()
+        # Get the actual session from the generator
+        db = next(get_db())
+        try:
+            logger.info(f"Evento recibido: {event.event_type} para {event.course_id}")
+            asyncio.run(handle_assignment_created_event(db, event))
+        finally:
+            db.close()
 
     channel.basic_consume(
         queue="assignment_created_queue", on_message_callback=callback, auto_ack=True
     )
-    logger.info("Esperando eventos de asignaciones nuevas. Ctrl+C para salir.")
+    logger.info("Esperando eventos de asignaciones nuevas.")
     channel.start_consuming()
