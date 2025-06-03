@@ -43,8 +43,12 @@ async def handle_assignment_created_event(db: Session, event: AssignmentCreatedE
         preferences = get_preferences_by_user_id(db, student_id)
         pref = next((p for p in preferences if p.event_type == event.event_type), None)
 
+        logger.info(f"pref vale: {pref}")
+
         if pref:
             if pref.email_enabled:
                 logger.info(f"Enviar email a {student_id}")
             if pref.push_enabled:
                 logger.info(f"Enviar push a {student_id}")
+        else:
+            logger.info(f"No hay preferencia")
