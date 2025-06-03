@@ -11,23 +11,23 @@ async def handle_assignment_created_event(db: Session, event: AssignmentCreatedE
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"http://courses-service:8000/courses/{event.course_id}/students"
+                f"https://class-connect-main-6b7ca6f.d2.zuplo.dev/courses/{event.course_id}/enrollments"
             )
             response.raise_for_status()
-            students = response.json()["data"]
+            enrollments = response.json()["data"]
     except Exception as e:
         logger.error(
-            f"No se pudieron obtener estudiantes del curso {event.course_id}: {e}"
+            f"No se pudieron obtener inscripciones del curso {event.course_id}: {e}"
         )
         return
 
-    for student in students:
-        uid = student["uid"]
-        preferences = get_preferences_by_user_id(db, uid)
+    for enrollment in enrollments:
+        student_id = enrollment["student_id"]
+        preferences = get_preferences_by_user_id(db, student_id)
         pref = next((p for p in preferences if p.event_type == event.event_type), None)
 
         if pref:
             if pref.email_enabled:
-                logger.info(f"Enviar email a {uid}")
+                logger.info(f"Enviar email a {student_id}")
             if pref.push_enabled:
-                logger.info(f"Enviar push a {uid}")
+                logger.info(f"Enviar push a {student_id}")
