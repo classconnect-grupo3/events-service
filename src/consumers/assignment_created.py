@@ -5,6 +5,10 @@ from src.database.db import get_db
 from src.rabbitmq.connection import get_rabbitmq_connection
 from src.schemas.assignment_created import AssignmentCreatedEvent
 from src.handlers.assignment_created import handle_assignment_created_event
+from src.utils.logger import setup_logger
+import asyncio
+
+logger = setup_logger(__name__)
 
 
 def consume_assignment_created():
@@ -17,12 +21,11 @@ def consume_assignment_created():
             payload = json.loads(body)
             event = AssignmentCreatedEvent(**payload)
         except Exception as e:
-            print(f"[ERROR] Evento mal formado: {e}")
+            logger.error(f"Evento mal formado: {e}")
             return
 
         db: Session = get_db()
-        print(f"[x] Evento recibido: {event.event_type} para {event.course_id}")
-        import asyncio
+        logger.info(f"Evento recibido: {event.event_type} para {event.course_id}")
 
         asyncio.run(handle_assignment_created_event(db, event))
         db.close()
@@ -30,5 +33,5 @@ def consume_assignment_created():
     channel.basic_consume(
         queue="assignment_created_queue", on_message_callback=callback, auto_ack=True
     )
-    print("[*] Esperando eventos de asignaciones nuevas. Ctrl+C para salir.")
+    logger.info("Esperando eventos de asignaciones nuevas. Ctrl+C para salir.")
     channel.start_consuming()

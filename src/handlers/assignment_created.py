@@ -2,15 +2,23 @@ import httpx
 from sqlalchemy.orm import Session
 from src.repository.notifications_preferences import get_preferences_by_user_id
 from src.schemas.assignment_created import AssignmentCreatedEvent
+from src.utils.logger import setup_logger
+
+logger = setup_logger(__name__)
+
 
 async def handle_assignment_created_event(db: Session, event: AssignmentCreatedEvent):
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"http://courses-service:8000/courses/{event.course_id}/students")
+            response = await client.get(
+                f"http://courses-service:8000/courses/{event.course_id}/students"
+            )
             response.raise_for_status()
             students = response.json()["data"]
     except Exception as e:
-        print(f"[ERROR] No se pudieron obtener estudiantes del curso {event.course_id}: {e}")
+        logger.error(
+            f"No se pudieron obtener estudiantes del curso {event.course_id}: {e}"
+        )
         return
 
     for student in students:
@@ -20,6 +28,6 @@ async def handle_assignment_created_event(db: Session, event: AssignmentCreatedE
 
         if pref:
             if pref.email_enabled:
-                print(f"📧 Enviar email a {uid} por asignación {event.assignment_title}")
+                logger.info(f"Enviar email a {uid}")
             if pref.push_enabled:
-                print(f"📲 Enviar push a {uid} por asignación {event.assignment_title}")
+                logger.info(f"Enviar push a {uid}")
