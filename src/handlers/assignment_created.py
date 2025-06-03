@@ -11,7 +11,7 @@ async def handle_assignment_created_event(db: Session, event: AssignmentCreatedE
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"https://courses-service-production.up.railway.app/course/{event.course_id}/enrollments"
+                f"https://courses-service-production.up.railway.app/courses/{event.course_id}/enrollments"
             )
             response.raise_for_status()
             enrollments = response.json()["data"]
