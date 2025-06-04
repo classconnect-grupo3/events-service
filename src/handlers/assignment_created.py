@@ -10,6 +10,7 @@ logger = setup_logger(__name__)
 
 
 async def handle_assignment_created_event(db: Session, event: AssignmentCreatedEvent):
+    logger.info(f"Event type received: '{event.event_type}'")
 
     try:
         async with httpx.AsyncClient() as client:
