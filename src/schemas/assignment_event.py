@@ -1,6 +1,6 @@
-from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from pydantic import BaseModel, Field
 
 
 class AssignmentEventType(Enum):
@@ -9,21 +9,16 @@ class AssignmentEventType(Enum):
     # Add more event types as needed
 
 
-@dataclass
-class AssignmentEvent:
+class AssignmentEvent(BaseModel):
     course_id: str
     assignment_id: str
     assignment_title: str
     assignment_due_date: datetime
 
 
-@dataclass
 class AssignmentReminder(AssignmentEvent):
-    def __post_init__(self):
-        self.event_type = AssignmentEventType.ASSIGNMENT_REMINDER.value
+    event_type: str = Field(default=AssignmentEventType.ASSIGNMENT_REMINDER.value)
 
 
-@dataclass
 class AssignmentCreated(AssignmentEvent):
-    def __post_init__(self):
-        self.event_type = AssignmentEventType.ASSIGNMENT_CREATED.value
+    event_type: str = Field(default=AssignmentEventType.ASSIGNMENT_CREATED.value)
