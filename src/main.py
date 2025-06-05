@@ -1,8 +1,10 @@
-from src.consumers.assignment_created import consume_assignment_created
+from src.consumers.event_router import EventRouter
 
 
 def main():
-    consume_assignment_created()
+    router = EventRouter()
+    router.start()
+
 
 if __name__ == "__main__":
     main()
