@@ -9,7 +9,7 @@ logger = setup_logger(__name__)
 
 
 async def send_notifications(db: Session, event):
-    logger.info(f"Event type received: '{event.event_type}'")
+    logger.info(f"Event received: '{event}'")
 
     try:
         async with httpx.AsyncClient() as client:
