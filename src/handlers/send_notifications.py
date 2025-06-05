@@ -1,7 +1,6 @@
 import httpx
 from sqlalchemy.orm import Session
 from src.repository.notifications_preferences import get_preferences_by_user_id
-from schemas.assignment_event import AssignmentCreatedEvent
 from src.utils.logger import setup_logger
 from src.utils.email_sender import send_notification_email
 from utils.result import Success
@@ -9,7 +8,7 @@ from utils.result import Success
 logger = setup_logger(__name__)
 
 
-async def send_notifications(db: Session, event: AssignmentCreatedEvent):
+async def send_notifications(db: Session, event):
     logger.info(f"Event type received: '{event.event_type}'")
 
     try:
