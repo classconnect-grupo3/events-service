@@ -39,12 +39,13 @@ async def send_notifications(db: Session, event):
         )
         return
 
+    logger.info(f"Starting to process {len(enrollments)} enrollments")
     for enrollment in enrollments:
         student_id = enrollment["student_id"]
 
         preferences = get_preferences_by_user_id(db, student_id)
         pref = next((p for p in preferences if p.event_type == event.event_type), None)
-        
+
         if pref:
             if pref.email_enabled:
                 # Get user data to get their email
