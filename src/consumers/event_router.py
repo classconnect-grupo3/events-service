@@ -14,18 +14,19 @@ import asyncio
 
 logger = setup_logger(__name__)
 
+
 class EventRouter:
     def __init__(self):
         self.connection = get_rabbitmq_connection()
         self.channel = self.connection.channel()
-        queue_name = os.getenv("NOTIFICATIONS_QUEUE_NAME")
-        self.channel.queue_declare(queue=queue_name)
+        self.queue_name = os.getenv("NOTIFICATIONS_QUEUE_NAME")
+        self.channel.queue_declare(queue=self.queue_name)
 
     def _get_event_class(self, event_type: str) -> type[BaseEvent]:
         """Get the appropriate event class based on event type."""
         event_map = {
             "assignment.created": AssignmentEvent,
-            "assiggnment.reminder": AssignmentEvent,
+            "assignment.reminder": AssignmentEvent,
         }
         return event_map.get(event_type)
 
@@ -33,7 +34,7 @@ class EventRouter:
         """Get the appropriate handler function based on event type."""
         handler_map = {
             "assignment.created": send_notifications,
-            "assiggnment.reminder": send_notifications,
+            "assignment.reminder": send_notifications,
         }
         return handler_map.get(event_type)
 
@@ -68,9 +69,9 @@ class EventRouter:
     def start(self):
         """Start consuming messages."""
         self.channel.basic_consume(
-            queue="notifications_queue",
+            queue=self.queue_name,
             on_message_callback=self._callback,
             auto_ack=True,
         )
-        logger.info("Esperando eventos...")
+        logger.info(f"Esperando eventos en cola: {self.queue_name}")
         self.channel.start_consuming()
