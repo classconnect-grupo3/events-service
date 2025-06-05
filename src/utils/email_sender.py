@@ -4,10 +4,12 @@ import aiosmtplib
 from typing import Union
 from datetime import datetime
 
+from utils.logger import setup_logger
 from utils.result import Failure, Success
 
 EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
 EMAIL_APP_PASSWORD = os.getenv("EMAIL_APP_PASSWORD")
+logger = setup_logger(__name__)
 
 
 async def send_notification_email(
@@ -18,7 +20,7 @@ async def send_notification_email(
 
     Args:
         to_email: Recipient's email address
-        event_type: Type of event (e.g., 'assignment_created')
+        event_type: Type of event (e.g., 'assignment.created')
         event_data: Dictionary containing event details
     """
     try:
@@ -26,7 +28,6 @@ async def send_notification_email(
         message["From"] = EMAIL_ADDRESS
         message["To"] = to_email
 
-        # Customize subject and content based on event type
         if event_type == "assignment.created":
             message["Subject"] = f"Nueva asignación: {event_data['assignment_title']}"
             content = f"""
@@ -37,9 +38,20 @@ async def send_notification_email(
             
             ¡No olvides completarla a tiempo!
             """
+        elif event_type == "assignment.reminder":
+            message["Subject"] = (
+                f"Recordatorio de asignación: {event_data['assignment_title']}"
+            )
+            content = f"""
+            Recordatorio: Tienes una asignación próxima a vencer.
+            
+            Título: {event_data['assignment_title']}
+            Fecha de entrega: {event_data['assignment_due_date'].strftime('%d/%m/%Y %H:%M')}
+            
+            ¡Asegúrate de completarla antes de la fecha límite!
+            """
         else:
-            message["Subject"] = f"Nueva notificación: {event_type}"
-            content = f"Has recibido una nueva notificación de tipo: {event_type}"
+            logger.info("Evento no reconocido")
 
         message.set_content(content)
 
