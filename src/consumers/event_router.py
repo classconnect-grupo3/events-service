@@ -1,4 +1,5 @@
 import json
+import os
 import pika
 from sqlalchemy.orm import Session
 from src.database.db import get_db
@@ -13,12 +14,13 @@ import asyncio
 
 logger = setup_logger(__name__)
 
+NOTIFICATIONS_QUEUE_NAME = os.getenv("NOTIFICATIONS_QUEUE_NAME")
 
 class EventRouter:
     def __init__(self):
         self.connection = get_rabbitmq_connection()
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue="notifications_queue")
+        self.channel.queue_declare(queue=NOTIFICATIONS_QUEUE_NAME)
 
     def _get_event_class(self, event_type: str) -> type[BaseEvent]:
         """Get the appropriate event class based on event type."""
