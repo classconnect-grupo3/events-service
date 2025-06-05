@@ -19,7 +19,10 @@ async def send_notifications(db: Session, event):
             )
             response.raise_for_status()
             response_data = response.json()
-            logger.info(f"Response data: {response_data}")
+
+            if response is None:
+                logger.error("No response received from courses service")
+                return
 
             enrollments = (
                 response_data
@@ -28,15 +31,11 @@ async def send_notifications(db: Session, event):
             )
 
             if not enrollments:
-                logger.warning(
-                    f"No se encontraron inscripciones para el curso {event.course_id}"
-                )
+                logger.warning(f"No enrollments found for course {event.course_id}")
                 return
 
     except Exception as e:
-        logger.error(
-            f"No se pudieron obtener inscripciones del curso {event.course_id}: {e}"
-        )
+        logger.error(f"Could not get enrollments for course {event.course_id}: {e}")
         return
 
     logger.info(f"Starting to process {len(enrollments)} enrollments")
@@ -50,7 +49,7 @@ async def send_notifications(db: Session, event):
             if pref.email_enabled:
                 # Get user data to get their email
                 try:
-                    logger.info(f"Obteniendo email del usuario")
+                    logger.info(f"Getting user email")
                     async with httpx.AsyncClient() as client:
                         user_response = await client.get(
                             f"https://users-service-production-968d.up.railway.app/users/{student_id}"
@@ -60,12 +59,12 @@ async def send_notifications(db: Session, event):
                         user_email = user_data["email"]
                 except Exception as e:
                     logger.error(
-                        f"No se pudo obtener información del usuario {student_id}: {e}"
+                        f"Could not get user information for {student_id}: {e}"
                     )
                     continue
 
                 logger.info(
-                    f"Enviando email a {user_email} sobre la asignación {event.assignment_title}"
+                    f"Sending email to {user_email} about assignment {event.assignment_title}"
                 )
                 # Convert event to dict for email function
                 event_data = {
@@ -76,10 +75,12 @@ async def send_notifications(db: Session, event):
                     user_email, event.event_type, event_data
                 )
                 if isinstance(result, Success):
-                    logger.info(f"Email enviado exitosamente a {user_email}")
+                    logger.info(f"Email successfully sent to {user_email}")
                 else:
-                    logger.error(
-                        f"Error al enviar email a {user_email}: {result.error}"
-                    )
+                    logger.error(f"Error sending email to {user_email}: {result.error}")
             if pref.push_enabled:
-                logger.info(f"Enviar push a {student_id}")
+                logger.info(f"Sending push to {student_id}")
+        else:
+            logger.info(
+                f"No matching preference found for event type {event.event_type}"
+            )
