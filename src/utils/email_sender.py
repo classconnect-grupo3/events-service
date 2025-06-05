@@ -28,6 +28,8 @@ async def send_notification_email(
         message["From"] = EMAIL_ADDRESS
         message["To"] = to_email
 
+        logger.info(f"Event type received: '{event_type}'")
+
         if event_type == "assignment.created":
             message["Subject"] = f"Nueva asignación: {event_data['assignment_title']}"
             content = f"""

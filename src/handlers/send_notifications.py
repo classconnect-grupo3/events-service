@@ -44,11 +44,12 @@ async def send_notifications(db: Session, event):
 
         preferences = get_preferences_by_user_id(db, student_id)
         pref = next((p for p in preferences if p.event_type == event.event_type), None)
-
+        
         if pref:
             if pref.email_enabled:
                 # Get user data to get their email
                 try:
+                    logger.info(f"Obteniendo email del usuario")
                     async with httpx.AsyncClient() as client:
                         user_response = await client.get(
                             f"https://users-service-production-968d.up.railway.app/users/{student_id}"
