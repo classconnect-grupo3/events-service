@@ -10,6 +10,7 @@ class AssignmentEventType(Enum):
 
 
 class AssignmentEvent(BaseModel):
+    event_type: str
     course_id: str
     assignment_id: str
     assignment_title: str
