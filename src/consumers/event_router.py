@@ -14,13 +14,12 @@ import asyncio
 
 logger = setup_logger(__name__)
 
-NOTIFICATIONS_QUEUE_NAME = os.getenv("NOTIFICATIONS_QUEUE_NAME")
-
 class EventRouter:
     def __init__(self):
         self.connection = get_rabbitmq_connection()
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=NOTIFICATIONS_QUEUE_NAME)
+        queue_name = os.getenv("NOTIFICATIONS_QUEUE_NAME")
+        self.channel.queue_declare(queue=queue_name)
 
     def _get_event_class(self, event_type: str) -> type[BaseEvent]:
         """Get the appropriate event class based on event type."""
