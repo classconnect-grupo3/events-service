@@ -91,7 +91,7 @@ async def send_email_notification(user_email: str, event: AssignmentEvent) -> bo
     try:
         event_data = {
             "assignment_title": event.assignment_title,
-            "assignment_due_date": event.assignment_due_date.isoformat(),
+            "assignment_due_date": event.assignment_due_date,
         }
 
         result = await send_notification_email(user_email, event.event_type, event_data)
