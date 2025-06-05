@@ -1,7 +1,6 @@
 import json
 import os
 import pika
-from sqlalchemy.orm import Session
 from src.database.db import get_db
 from src.rabbitmq.connection import get_rabbitmq_connection
 from src.schemas.base_event import BaseEvent
