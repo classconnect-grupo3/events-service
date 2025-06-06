@@ -23,7 +23,8 @@ async def check_submission_status(assignment_id: str, student_id: str) -> bool:
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"https://courses-service-production.up.railway.app/students/{student_id}/submissions"
+                f"https://courses-service-production.up.railway.app/students/{student_id}/submissions",
+                headers={"X-Student-UUID": student_id},
             )
             response.raise_for_status()
             submissions = response.json()
@@ -120,14 +121,6 @@ async def process_enrollment(
                 f"Student {student_id} has already submitted assignment {event.assignment_id}, skipping reminder"
             )
             return
-        else:
-            logger.info(
-                f"Student {student_id} has not submitted assignment {event.assignment_id}"
-            )
-    else:
-        logger.info(
-                f"Ni idea este evento bro"
-            )
 
     preferences = get_preferences_by_user_id(db, student_id)
     pref = next((p for p in preferences if p.event_type == event.event_type), None)
