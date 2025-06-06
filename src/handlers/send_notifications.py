@@ -120,6 +120,10 @@ async def process_enrollment(
                 f"Student {student_id} has already submitted assignment {event.assignment_id}, skipping reminder"
             )
             return
+        else:
+            logger.info(
+                f"Student {student_id} has not submitted assignment {event.assignment_id}"
+            )
 
     preferences = get_preferences_by_user_id(db, student_id)
     pref = next((p for p in preferences if p.event_type == event.event_type), None)
