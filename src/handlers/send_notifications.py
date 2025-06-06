@@ -28,7 +28,6 @@ async def check_submission_status(assignment_id: str, student_id: str) -> bool:
             )
             response.raise_for_status()
             submissions = response.json()
-            logger.info(f"Student's submissions: {submissions}")
             # Find submission for this specific assignment
             assignment_submission = next(
                 (sub for sub in submissions if sub["assignment_id"] == assignment_id),
