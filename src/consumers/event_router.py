@@ -4,7 +4,11 @@ import pika
 from src.database.db import get_db
 from src.rabbitmq.connection import get_rabbitmq_connection
 from src.schemas.base_event import BaseEvent
-from schemas.assignment_event import AssignmentEvent
+from src.schemas.assignment_event import (
+    AssignmentEvent,
+    AssignmentReminder,
+    AssignmentCreated,
+)
 from handlers.send_notifications import (
     send_notifications,
 )
@@ -21,11 +25,11 @@ class EventRouter:
         self.queue_name = os.getenv("NOTIFICATIONS_QUEUE_NAME")
         self.channel.queue_declare(queue=self.queue_name)
 
-    def _get_event_class(self, event_type: str) -> type[BaseEvent]:
+    def _get_event_class(self, event_type: str) -> type[AssignmentEvent]:
         """Get the appropriate event class based on event type."""
         event_map = {
-            "assignment.created": AssignmentEvent,
-            "assignment.reminder": AssignmentEvent,
+            "assignment.created": AssignmentCreated,
+            "assignment.reminder": AssignmentReminder,
         }
         return event_map.get(event_type)
 
