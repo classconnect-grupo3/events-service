@@ -2,7 +2,8 @@ import httpx
 from sqlalchemy.orm import Session
 from src.repository.notifications_preferences import get_preferences_by_user_id
 from src.utils.logger import setup_logger
-from src.utils.email_sender import send_notification_email
+from notifications.email import send_notification_email
+from notifications.push import send_push_to_token, get_user_fcm_tokens
 from utils.result import Success
 from typing import List, Dict, Optional
 from src.schemas.assignment_event import (
@@ -134,8 +135,15 @@ async def process_enrollment(
             await send_email_notification(user_email, event)
 
     if pref.push_enabled:
-        logger.info(f"Sending push to {student_id}")
-        # Implement push notification logic here
+        fcm_tokens = await get_user_fcm_tokens(student_id)
+
+        if not fcm_tokens:
+            logger.info(f"No FCM tokens found for user {student_id}")
+            return
+
+        # Send push notification to all user's devices
+        for token in fcm_tokens:
+            await send_push_to_token(token, event)
 
 
 async def send_notifications(db: Session, event: AssignmentEvent) -> None:
