@@ -6,3 +6,4 @@ aiohttp
 pydantic
 SQLAlchemy==2.0.39
 psycopg2-binary==2.9.10
+firebase-admin
