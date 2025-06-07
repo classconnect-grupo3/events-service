@@ -94,8 +94,7 @@ async def delete_token(token: str) -> None:
     try:
         async with httpx.AsyncClient() as client:
             await client.delete(
-                "https://notifications-service-production.up.railway.app/notifications/token",
-                params={"token": token},
+                f"https://notifications-service-production.up.railway.app/notifications/token/{token}",
                 timeout=5,
             )
             logger.info(f"Successfully deleted token: {token}")
