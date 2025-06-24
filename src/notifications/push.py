@@ -72,7 +72,7 @@ async def get_user_fcm_tokens(uid: str) -> List[str]:
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                "https://notifications-service-production.up.railway.app/notifications/tokens",
+                "https://class-connect-main-95f2455.zuplo.app/user/tokens/{uid}",
                 params={"uid": uid},
                 timeout=5,
             )
@@ -94,7 +94,7 @@ async def delete_token(token: str) -> None:
     try:
         async with httpx.AsyncClient() as client:
             await client.delete(
-                f"https://notifications-service-production.up.railway.app/notifications/token/{token}",
+                f"https://class-connect-main-95f2455.zuplo.app/notifications/token/{token}",
                 timeout=5,
             )
             logger.info(f"Successfully deleted token: {token}")
