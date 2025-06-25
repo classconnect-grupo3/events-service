@@ -25,7 +25,6 @@ async def get_user_email(user_id: str) -> Optional[str]:
         return None
 
 
-
 async def send_email_notification(user_email: str, event) -> bool:
     """Send email notification to user using the event's send_email_notification method."""
     try:
@@ -44,6 +43,27 @@ async def send_email_notification(user_email: str, event) -> bool:
         return False
 
 
+async def send_notifications_based_on_preferences(
+    user_id: str, event, email_enabled: bool, push_enabled: bool
+) -> None:
+    
+    if email_enabled:
+        user_email = await get_user_email(user_id)
+        if user_email:
+            await send_email_notification(user_email, event)
+
+    if push_enabled:
+        fcm_tokens = await get_user_fcm_tokens(user_id)
+
+        if not fcm_tokens:
+            logger.info(f"No FCM tokens found for user {user_id}")
+            return
+
+        # Send push notification to all user's devices
+        for token in fcm_tokens:
+            await send_push_to_token(token, event)
+
+
 async def process_user_notification(user_id: str, event, db: Session) -> None:
     """
     Main function to process notifications for a user.
@@ -56,18 +76,6 @@ async def process_user_notification(user_id: str, event, db: Session) -> None:
         logger.info(f"No matching preference found for event type {event.event_type}")
         return
 
-    if pref.email_enabled:
-        user_email = await get_user_email(user_id)
-        if user_email:
-            await send_email_notification(user_email, event)
-
-    if pref.push_enabled:
-        fcm_tokens = await get_user_fcm_tokens(user_id)
-
-        if not fcm_tokens:
-            logger.info(f"No FCM tokens found for user {user_id}")
-            return
-
-        # Send push notification to all user's devices
-        for token in fcm_tokens:
-            await send_push_to_token(token, event)
+    await send_notifications_based_on_preferences(
+        user_id, event, pref.email_enabled, pref.push_enabled
+    )
