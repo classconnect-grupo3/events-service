@@ -9,8 +9,40 @@ from src.schemas.assignment_event import (
     AssignmentReminder,
     AssignmentCreated,
 )
-from handlers.send_notifications import (
+from src.schemas.teacher_event import (
+    AuxTeacherAddedEvent,
+    AuxTeacherRemovedEvent,
+)
+from src.schemas.feedback_event import (
+    FeedbackCreatedEvent,
+)
+from src.schemas.enrollment_event import (
+    EnrolledStudentToCourseEvent,
+    UnenrolledStudentFromCourseEvent,
+)
+from src.schemas.forum_event import (
+    ForumActivityEvent,
+)
+from src.schemas.submission_event import (
+    SubmissionCorrectedEvent,
+)
+from src.handlers.send_notifications import (
     send_notifications,
+)
+from src.handlers.send_teacher_notifications import (
+    send_teacher_notifications,
+)
+from src.handlers.send_feedback_notifications import (
+    send_feedback_notifications,
+)
+from src.handlers.send_enrollment_notifications import (
+    send_enrollment_notifications,
+)
+from src.handlers.send_forum_notifications import (
+    send_forum_notifications,
+)
+from src.handlers.send_submission_notifications import (
+    send_submission_notifications,
 )
 from src.utils.logger import setup_logger
 import asyncio
@@ -25,11 +57,18 @@ class EventRouter:
         self.queue_name = os.getenv("NOTIFICATIONS_QUEUE_NAME")
         self.channel.queue_declare(queue=self.queue_name)
 
-    def _get_event_class(self, event_type: str) -> type[AssignmentEvent]:
+    def _get_event_class(self, event_type: str):
         """Get the appropriate event class based on event type."""
         event_map = {
             "assignment.created": AssignmentCreated,
             "assignment.reminder": AssignmentReminder,
+            "aux_teacher.added": AuxTeacherAddedEvent,
+            "aux_teacher.removed": AuxTeacherRemovedEvent,
+            "feedback.created": FeedbackCreatedEvent,
+            "student.enrolled": EnrolledStudentToCourseEvent,
+            "student.unenrolled": UnenrolledStudentFromCourseEvent,
+            "forum.activity": ForumActivityEvent,
+            "submission.corrected": SubmissionCorrectedEvent,
         }
         return event_map.get(event_type)
 
@@ -38,6 +77,13 @@ class EventRouter:
         handler_map = {
             "assignment.created": send_notifications,
             "assignment.reminder": send_notifications,
+            "aux_teacher.added": send_teacher_notifications,
+            "aux_teacher.removed": send_teacher_notifications,
+            "feedback.created": send_feedback_notifications,
+            "student.enrolled": send_enrollment_notifications,
+            "student.unenrolled": send_enrollment_notifications,
+            "forum.activity": send_forum_notifications,
+            "submission.corrected": send_submission_notifications,
         }
         return handler_map.get(event_type)
 

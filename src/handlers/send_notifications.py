@@ -11,6 +11,10 @@ from src.schemas.assignment_event import (
     AssignmentReminder,
     AssignmentCreated,
 )
+from src.utils.helper_functions import (
+    get_user_email,
+    process_user_notification,
+)
 
 logger = setup_logger(__name__)
 
@@ -72,41 +76,6 @@ async def get_course_enrollments(course_id: str) -> List[Dict]:
         return []
 
 
-async def get_user_email(student_id: str) -> Optional[str]:
-    """Fetch user email from users service."""
-    try:
-        async with httpx.AsyncClient() as client:
-            user_response = await client.get(
-                f"https://users-service-production-968d.up.railway.app/users/{student_id}"
-            )
-            user_response.raise_for_status()
-            user_data = user_response.json()["data"]
-            return user_data["email"]
-    except Exception as e:
-        logger.error(f"Could not get user information for {student_id}: {e}")
-        return None
-
-
-async def send_email_notification(user_email: str, event: AssignmentEvent) -> bool:
-    """Send email notification to user."""
-    try:
-        event_data = {
-            "assignment_title": event.assignment_title,
-            "assignment_due_date": event.assignment_due_date,
-        }
-
-        result = await send_notification_email(user_email, event.event_type, event_data)
-        if isinstance(result, Success):
-            logger.info(f"Email successfully sent to {user_email}")
-            return True
-        else:
-            logger.error(f"Error sending email to {user_email}: {result.error}")
-            return False
-    except Exception as e:
-        logger.error(f"Failed to send email notification: {e}")
-        return False
-
-
 async def process_enrollment(
     enrollment: Dict, event: AssignmentEvent, db: Session
 ) -> None:
@@ -122,28 +91,7 @@ async def process_enrollment(
             )
             return
 
-    preferences = get_preferences_by_user_id(db, student_id)
-    pref = next((p for p in preferences if p.event_type == event.event_type), None)
-
-    if not pref:
-        logger.info(f"No matching preference found for event type {event.event_type}")
-        return
-
-    if pref.email_enabled:
-        user_email = await get_user_email(student_id)
-        if user_email:
-            await send_email_notification(user_email, event)
-
-    if pref.push_enabled:
-        fcm_tokens = await get_user_fcm_tokens(student_id)
-
-        if not fcm_tokens:
-            logger.info(f"No FCM tokens found for user {student_id}")
-            return
-
-        # Send push notification to all user's devices
-        for token in fcm_tokens:
-            await send_push_to_token(token, event)
+    await process_user_notification(student_id, event, db)
 
 
 async def send_notifications(db: Session, event: AssignmentEvent) -> None:
